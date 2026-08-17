@@ -4,6 +4,8 @@ coverage/
 playwright-report/
 test-results/
 *.tsbuildinfo
+apps/web/vite.config.js
+apps/web/vite.config.d.ts
 .env
 .env.*
 !.env.example
