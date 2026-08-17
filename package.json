@@ -1,0 +1,12 @@
+{
+  "name": "forge-agent",
+  "private": true,
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "dev": "pnpm --filter @forge-agent/web dev",
+    "build": "pnpm --filter @forge-agent/web build",
+    "test": "pnpm --filter @forge-agent/web test",
+    "test:e2e": "pnpm --filter @forge-agent/web test:e2e",
+    "typecheck": "pnpm --filter @forge-agent/web typecheck"
+  }
+}
