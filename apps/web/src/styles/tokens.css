@@ -1,0 +1,2 @@
+:root { color-scheme: dark; font-family: Inter, "Microsoft YaHei UI", "PingFang SC", sans-serif; --ink:#101214; --paper:#f6f5ef; --muted:#a5aaa8; --line:rgba(246,245,239,.17); --cyan:#52d8e7; --lime:#c8f044; --yellow:#f2d84c; --coral:#ff7969; --card:rgba(28,31,33,.87); }
+*{box-sizing:border-box} body{margin:0;background:var(--ink);color:var(--paper)}button{font:inherit}button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
