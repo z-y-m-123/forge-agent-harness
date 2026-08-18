@@ -55,27 +55,27 @@ git commit -m "feat: add provider contracts and mock provider"
 - Create: `apps/api/src/http-server.test.ts`
 - Modify: `apps/api/package.json`
 
-- [ ] **Step 1: Write failing route tests**
+- [x] **Step 1: Write failing route tests**
 
 Test malformed JSON and missing message return `400`, unknown provider returns `404`, and a valid request returns `200` with ordered NDJSON events and the correct content type.
 
-- [ ] **Step 2: Run route tests to verify they fail**
+- [x] **Step 2: Run route tests to verify they fail**
 
 Run: `pnpm --filter @forge-agent/api test src/http-server.test.ts`
 
 Expected: FAIL because the HTTP handler does not exist.
 
-- [ ] **Step 3: Implement the HTTP handler and server entrypoint**
+- [x] **Step 3: Implement the HTTP handler and server entrypoint**
 
 Use `node:http`, parse only `POST /api/agent/runs`, validate the request, select a provider, and write each event as one JSON line. Expose a testable `createServer(registry)` and a `startServer()` that binds to `127.0.0.1`.
 
-- [ ] **Step 4: Run route tests and typecheck**
+- [x] **Step 4: Run route tests and typecheck**
 
 Run: `pnpm --filter @forge-agent/api test src/http-server.test.ts` and `pnpm --filter @forge-agent/api typecheck`
 
 Expected: all route tests and TypeScript checks pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add apps/api
