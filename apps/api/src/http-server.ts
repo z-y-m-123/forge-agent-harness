@@ -1,6 +1,7 @@
 import { createServer as createHttpServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { ProviderRegistry } from './provider-registry.js'
 import { createConfiguredRegistry } from './runtime-config.js'
+import { runAgentLoop } from './agent-loop.js'
 import type { RunRequest } from './contracts.js'
 
 const MAX_BODY_BYTES = 1024 * 1024
@@ -32,11 +33,13 @@ function parseRunRequest(body: string): RunRequest {
   if (typeof candidate.taskId !== 'string' || candidate.taskId.trim() === '') throw new Error('taskId is required')
   if (typeof candidate.message !== 'string' || candidate.message.trim() === '') throw new Error('message is required')
   if (candidate.provider !== undefined && typeof candidate.provider !== 'string') throw new Error('provider must be a string')
+  if (candidate.approved !== undefined && typeof candidate.approved !== 'boolean') throw new Error('approved must be a boolean')
 
   return {
     taskId: candidate.taskId,
     message: candidate.message,
-    provider: typeof candidate.provider === 'string' && candidate.provider.trim() ? candidate.provider : undefined
+    provider: typeof candidate.provider === 'string' && candidate.provider.trim() ? candidate.provider : undefined,
+    approved: candidate.approved === true
   }
 }
 
@@ -70,7 +73,7 @@ export function createServer(registry: ProviderRegistry): Server {
     })
 
     try {
-      for await (const event of provider.run(input)) response.write(`${JSON.stringify(event)}\n`)
+      for await (const event of runAgentLoop(provider, input)) response.write(`${JSON.stringify(event)}\n`)
     } catch {
       response.write(`${JSON.stringify({ type: 'provider.failed', actor: 'coordinator', summary: 'Provider request failed' })}\n`)
     } finally {

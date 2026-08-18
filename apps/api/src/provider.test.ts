@@ -15,8 +15,17 @@ describe('provider contracts', () => {
 
     expect(events).toEqual([
       { type: 'model.message', actor: 'coordinator', summary: 'Mock provider understood: inspect retries' },
-      { type: 'tool.started', actor: 'explorer', tool: 'readFile', summary: 'readFile started' },
-      { type: 'tool.completed', actor: 'explorer', tool: 'readFile', summary: 'readFile completed' }
+      {
+        type: 'task.spec',
+        actor: 'planner',
+        summary: 'Task Spec ready for approval',
+        data: {
+          outcome: 'Inspect retry handling without editing code',
+          inScopeFiles: ['src/http/retry.ts', 'src/http/retry.test.ts'],
+          acceptanceEvidence: ['Focused test evidence', 'Reviewable read-only trace']
+        }
+      },
+      { type: 'tool.requested', actor: 'explorer', tool: 'readFile', summary: 'readFile requested' }
     ])
   })
 

@@ -47,6 +47,18 @@ describe('agent run HTTP endpoint', () => {
     expect(result.response.headers.get('content-type')).toContain('application/x-ndjson')
     expect(result.text.trim().split('\n').map(line => JSON.parse(line).type)).toEqual([
       'model.message',
+      'task.spec',
+      'tool.requested'
+    ])
+  })
+
+  it('executes the requested read-only tool only when approved', async () => {
+    const result = await request(JSON.stringify({ taskId: 'task-1', message: 'inspect retries', approved: true }))
+
+    expect(result.text.trim().split('\n').map(line => JSON.parse(line).type)).toEqual([
+      'model.message',
+      'task.spec',
+      'tool.requested',
       'tool.started',
       'tool.completed'
     ])

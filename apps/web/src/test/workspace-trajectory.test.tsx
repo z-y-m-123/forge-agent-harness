@@ -21,6 +21,7 @@ it('renders the API trajectory after task approval', async () => {
   expect(streamAgentRun).toHaveBeenCalledWith({
     taskId: 'demo-retry-318',
     message: 'Inspect retry handling without editing code.',
-    provider: undefined
+    provider: undefined,
+    approved: true
   })
 })

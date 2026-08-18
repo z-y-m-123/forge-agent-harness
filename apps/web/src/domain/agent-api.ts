@@ -4,6 +4,7 @@ export interface AgentRunRequest {
   taskId: string
   message: string
   provider?: string
+  approved?: boolean
 }
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
