@@ -21,27 +21,27 @@
 - Create: `apps/api/src/mock-provider.ts`
 - Create: `apps/api/src/provider.test.ts`
 
-- [ ] **Step 1: Write the failing contract tests**
+- [x] **Step 1: Write the failing contract tests**
 
 Cover deterministic mock ordering and registry lookup/default behavior.
 
-- [ ] **Step 2: Run the focused API test and verify it fails**
+- [x] **Step 2: Run the focused API test and verify it fails**
 
 Run: `pnpm --filter @forge-agent/api test`
 
 Expected: FAIL because the API package and provider modules do not exist.
 
-- [ ] **Step 3: Implement the minimal contracts and MockProvider**
+- [x] **Step 3: Implement the minimal contracts and MockProvider**
 
 Define `RunRequest`, `AgentEventInput`, `ModelProvider`, `ProviderRegistry`, and a mock that emits one model message plus the read tool start/completion events. The mock must not access filesystem, network, environment secrets, or process execution.
 
-- [ ] **Step 4: Run the focused API test and verify it passes**
+- [x] **Step 4: Run the focused API test and verify it passes**
 
 Run: `pnpm --filter @forge-agent/api test`
 
 Expected: all provider tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add apps/api
@@ -137,4 +137,3 @@ Expected: all commands exit with code 0.
 git add package.json
 git commit -m "chore: add api verification scripts"
 ```
-
