@@ -18,6 +18,7 @@ export function runDemoExecution(approved: boolean) {
     task,
     log: createEventLog(task.id),
     tool: 'readFile',
+    now: () => new Date('2026-08-18T00:00:00.000Z'),
     run: async () => 'demo source excerpt'
   })
 }
