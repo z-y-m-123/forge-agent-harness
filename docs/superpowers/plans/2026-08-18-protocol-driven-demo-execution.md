@@ -16,7 +16,7 @@
 - Create: `apps/web/src/domain/demo-execution.ts`
 - Create: `apps/web/src/test/demo-execution.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { expect, it } from 'vitest'
@@ -34,13 +34,13 @@ it('returns a blocked result before approval and a tool trajectory after approva
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @forge-agent/web test src/test/demo-execution.test.ts`
 
 Expected: FAIL because `demo-execution` does not exist.
 
-- [ ] **Step 3: Write the minimal implementation**
+- [x] **Step 3: Write the minimal implementation**
 
 ```ts
 export async function runDemoExecution(approved: boolean) {
@@ -50,13 +50,13 @@ export async function runDemoExecution(approved: boolean) {
 }
 ```
 
-- [ ] **Step 4: Run focused test to verify it passes**
+- [x] **Step 4: Run focused test to verify it passes**
 
 Run: `pnpm --filter @forge-agent/web test src/test/demo-execution.test.ts`
 
 Expected: PASS with one test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add apps/web/src/domain/demo-execution.ts apps/web/src/test/demo-execution.test.ts
@@ -70,7 +70,7 @@ git commit -m "feat: add deterministic demo execution"
 - Modify: `apps/web/src/pages/workspace-page.tsx`
 - Create: `apps/web/src/test/workspace-trajectory.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 render(<WorkspacePage />)
@@ -78,23 +78,23 @@ await user.click(screen.getByRole('button', { name: '批准任务并创建计划
 expect(await screen.findByText('readFile completed')).toBeVisible()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @forge-agent/web test src/test/workspace-trajectory.test.tsx`
 
 Expected: FAIL because the workspace does not own or render a demo event log.
 
-- [ ] **Step 3: Implement local-only event state**
+- [x] **Step 3: Implement local-only event state**
 
 `WorkspacePage` creates an empty `AgentEventLog`, passes an `onApproved` callback to `TaskSpecPanel`, and renders returned event summaries under `Agent trajectory`. `TaskSpecPanel` dispatches `taskApproved` before calling `onApproved`. No tool execution happens outside `runDemoExecution(true)`.
 
-- [ ] **Step 4: Run the focused test to verify it passes**
+- [x] **Step 4: Run the focused test to verify it passes**
 
 Run: `pnpm --filter @forge-agent/web test src/test/workspace-trajectory.test.tsx`
 
 Expected: PASS with the completed tool event visible.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add apps/web/src/components/task-spec-panel.tsx apps/web/src/pages/workspace-page.tsx apps/web/src/test/workspace-trajectory.test.tsx
