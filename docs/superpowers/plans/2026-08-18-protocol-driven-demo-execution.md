@@ -106,20 +106,20 @@ git commit -m "feat: render approval-gated demo trajectory"
 **Files:**
 - Modify: `apps/web/e2e/product-shell.spec.ts`
 
-- [ ] **Step 1: Add the new browser assertion**
+- [x] **Step 1: Add the new browser assertion**
 
 ```ts
 await page.getByRole('button', { name: '批准任务并创建计划' }).click()
 await expect(page.getByText('readFile completed')).toBeVisible()
 ```
 
-- [ ] **Step 2: Run all checks**
+- [x] **Step 2: Run all checks**
 
 Run: `pnpm test; pnpm typecheck; pnpm build; pnpm test:e2e`
 
 Expected: all commands exit with code 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add apps/web/e2e/product-shell.spec.ts
