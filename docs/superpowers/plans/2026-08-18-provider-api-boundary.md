@@ -88,27 +88,27 @@ git commit -m "feat: add provider run api"
 - Create: `apps/web/src/domain/agent-api.ts`
 - Create: `apps/web/src/test/agent-api.test.ts`
 
-- [ ] **Step 1: Write the failing parser/client tests**
+- [x] **Step 1: Write the failing parser/client tests**
 
 Mock `fetch`, assert the client sends the task id/message/provider, parses each NDJSON line, and reports non-2xx responses as errors.
 
-- [ ] **Step 2: Run the focused web test to verify it fails**
+- [x] **Step 2: Run the focused web test to verify it fails**
 
 Run: `pnpm --filter @forge-agent/web test src/test/agent-api.test.ts`
 
 Expected: FAIL because the client module does not exist.
 
-- [ ] **Step 3: Implement the minimal typed client**
+- [x] **Step 3: Implement the minimal typed client**
 
 Expose `streamAgentRun(request, fetcher = fetch)` returning `Promise<AgentEventInput[]>`. Keep provider credentials out of the request type and preserve event order.
 
-- [ ] **Step 4: Run focused test, all unit tests, and typecheck**
+- [x] **Step 4: Run focused test, all unit tests, and typecheck**
 
 Run: `pnpm --filter @forge-agent/web test src/test/agent-api.test.ts; pnpm test; pnpm typecheck`
 
 Expected: all tests and type checks pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add apps/web/src/domain/agent-api.ts apps/web/src/test/agent-api.test.ts
