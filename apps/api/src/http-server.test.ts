@@ -51,4 +51,21 @@ describe('agent run HTTP endpoint', () => {
       'tool.completed'
     ])
   })
+
+  it('emits a sanitized provider failure event when an upstream call fails', async () => {
+    const failingProvider = {
+      id: 'failing',
+      async *run() {
+        throw new Error('upstream secret')
+      }
+    }
+    const result = await request(
+      JSON.stringify({ taskId: 'task-1', message: 'inspect', provider: 'failing' }),
+      new ProviderRegistry([failingProvider])
+    )
+
+    expect(result.response.status).toBe(200)
+    expect(result.text).toContain('provider.failed')
+    expect(result.text).not.toContain('upstream secret')
+  })
 })

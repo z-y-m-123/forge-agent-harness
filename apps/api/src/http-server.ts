@@ -1,6 +1,6 @@
 import { createServer as createHttpServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import { MockProvider } from './mock-provider.js'
 import { ProviderRegistry } from './provider-registry.js'
+import { createConfiguredRegistry } from './runtime-config.js'
 import type { RunRequest } from './contracts.js'
 
 const MAX_BODY_BYTES = 1024 * 1024
@@ -71,6 +71,8 @@ export function createServer(registry: ProviderRegistry): Server {
 
     try {
       for await (const event of provider.run(input)) response.write(`${JSON.stringify(event)}\n`)
+    } catch {
+      response.write(`${JSON.stringify({ type: 'provider.failed', actor: 'coordinator', summary: 'Provider request failed' })}\n`)
     } finally {
       response.end()
     }
@@ -78,7 +80,7 @@ export function createServer(registry: ProviderRegistry): Server {
 }
 
 export function startServer(port = Number(process.env.PORT ?? 8787), host = '127.0.0.1') {
-  const server = createServer(new ProviderRegistry([new MockProvider()]))
+  const server = createServer(createConfiguredRegistry())
   server.listen(port, host, () => console.log(`Forge API listening on http://${host}:${port}`))
   return server
 }

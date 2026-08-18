@@ -1,5 +1,5 @@
 export type AgentRole = 'coordinator' | 'explorer' | 'planner' | 'implementer' | 'verifier' | 'reviewer'
-export type AgentEventType = 'model.message' | 'tool.started' | 'tool.completed' | 'tool.failed' | 'verification.completed'
+export type AgentEventType = 'model.message' | 'tool.started' | 'tool.completed' | 'tool.failed' | 'provider.failed' | 'verification.completed'
 
 export interface AgentEventInput {
   type: AgentEventType
