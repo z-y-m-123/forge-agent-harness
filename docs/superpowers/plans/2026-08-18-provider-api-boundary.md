@@ -121,17 +121,17 @@ git commit -m "feat: add typed provider api client"
 - Modify: `package.json`
 - Modify: `pnpm-workspace.yaml` only if required by package discovery
 
-- [ ] **Step 1: Add root API scripts**
+- [x] **Step 1: Add root API scripts**
 
 Add `api:test`, `api:typecheck`, and `api:dev` forwarding commands without changing the existing web scripts.
 
-- [ ] **Step 2: Run the complete verification suite**
+- [x] **Step 2: Run the complete verification suite**
 
 Run: `pnpm test; pnpm typecheck; pnpm build; pnpm api:test; pnpm api:typecheck`
 
 Expected: all commands exit with code 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add package.json

@@ -10,6 +10,9 @@
     "build": "pnpm --filter @forge-agent/web build",
     "test": "pnpm --filter @forge-agent/web test",
     "test:e2e": "pnpm --filter @forge-agent/web test:e2e",
-    "typecheck": "pnpm --filter @forge-agent/web typecheck"
+    "typecheck": "pnpm --filter @forge-agent/web typecheck",
+    "api:dev": "pnpm --filter @forge-agent/api dev",
+    "api:test": "pnpm --filter @forge-agent/api test",
+    "api:typecheck": "pnpm --filter @forge-agent/api typecheck"
   }
 }
