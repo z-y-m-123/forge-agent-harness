@@ -1,4 +1,4 @@
-import type { AppState, Locale, Mode } from '../domain/types'
+import type { AppState, GitHubContext, Locale, Mode } from '../domain/types'
 
 export type AppAction =
   | { type: 'projectSelected'; projectId: string }
@@ -7,6 +7,7 @@ export type AppAction =
   | { type: 'taskApproved' }
   | { type: 'executionStarted' }
   | { type: 'scopeAmendmentRequested' }
+  | { type: 'githubContextLoaded'; context: GitHubContext }
   | { type: 'localeChanged'; locale: Locale }
 
 export const initialAppState: AppState = {
@@ -19,7 +20,7 @@ export const initialAppState: AppState = {
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'projectSelected':
-      return { ...state, projectId: action.projectId, mode: null, taskStatus: 'idle' }
+      return { ...state, projectId: action.projectId || null, mode: null, taskStatus: 'idle', githubContext: action.projectId.includes('/') ? state.githubContext : undefined }
     case 'modeSelected':
       return state.projectId ? { ...state, mode: action.mode } : state
     case 'taskProposed':
@@ -30,6 +31,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return state.taskStatus === 'approved' ? { ...state, taskStatus: 'executing' } : state
     case 'scopeAmendmentRequested':
       return { ...state, taskStatus: 'proposal' }
+    case 'githubContextLoaded':
+      return { ...state, projectId: action.context.repository, mode: null, taskStatus: 'idle', githubContext: action.context }
     case 'localeChanged':
       return { ...state, locale: action.locale }
     default:

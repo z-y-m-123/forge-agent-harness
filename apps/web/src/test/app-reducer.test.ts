@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { appReducer, initialAppState } from '../state/app-reducer'
 
+const githubContext = {
+  repository: 'octo/forge',
+  description: 'A useful project',
+  defaultBranch: 'main',
+  readme: '# Forge',
+  files: ['README.md', 'src/index.ts'],
+  issues: [{ number: 7, title: 'Improve docs', state: 'open' }]
+}
+
 describe('appReducer', () => {
   it('selects a project before a mode can be selected', () => {
     const ignored = appReducer(initialAppState, { type: 'modeSelected', mode: 'workspace' })
@@ -23,5 +32,15 @@ describe('appReducer', () => {
   it('returns execution to proposal when a scope amendment is requested', () => {
     const executing = { ...initialAppState, taskStatus: 'executing' as const }
     expect(appReducer(executing, { type: 'scopeAmendmentRequested' }).taskStatus).toBe('proposal')
+  })
+
+  it('stores a loaded GitHub context and clears the previous mode', () => {
+    const working = { ...initialAppState, projectId: 'api-service', mode: 'chat' as const, taskStatus: 'proposal' as const }
+    const connected = appReducer(working, { type: 'githubContextLoaded', context: githubContext })
+
+    expect(connected.projectId).toBe('octo/forge')
+    expect(connected.mode).toBeNull()
+    expect(connected.taskStatus).toBe('idle')
+    expect(connected.githubContext).toEqual(githubContext)
   })
 })

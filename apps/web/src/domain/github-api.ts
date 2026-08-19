@@ -1,11 +1,5 @@
-export interface GitHubContext {
-  repository: string
-  description: string | null
-  defaultBranch: string
-  readme: string
-  files: string[]
-  issues: Array<{ number: number; title: string; state: string }>
-}
+export type { GitHubContext } from './types'
+import type { GitHubContext } from './types'
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 
