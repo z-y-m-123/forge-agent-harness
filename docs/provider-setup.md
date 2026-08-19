@@ -31,3 +31,20 @@ pnpm api:dev
 ```
 
 当前真实 Provider 只负责一次模型请求并产出 `model.message`；文件读取、写入、Shell 和 GitHub 操作仍由后续 Harness 工具层负责。
+
+## GitHub 只读上下文
+
+API 已提供 `POST /api/github/context`，请求体为：
+
+```json
+{"repository":"owner/name"}
+```
+
+公开仓库可以不配置 Token；访问私有仓库或提高速率限制时，在 API 服务端设置：
+
+```powershell
+$env:GITHUB_TOKEN = "你的服务端 GitHub Token"
+$env:GITHUB_API_BASE_URL = "https://api.github.com"
+```
+
+当前只读取仓库元数据、README、文件树和开放 Issue，不创建分支、不写文件、不创建 PR。

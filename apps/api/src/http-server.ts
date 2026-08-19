@@ -2,6 +2,7 @@ import { createServer as createHttpServer, type IncomingMessage, type Server, ty
 import { ProviderRegistry } from './provider-registry.js'
 import { createConfiguredRegistry } from './runtime-config.js'
 import { runAgentLoop } from './agent-loop.js'
+import { GitHubClient, type GitHubContext } from './github-client.js'
 import type { RunRequest } from './contracts.js'
 
 const MAX_BODY_BYTES = 1024 * 1024
@@ -43,8 +44,22 @@ function parseRunRequest(body: string): RunRequest {
   }
 }
 
-export function createServer(registry: ProviderRegistry): Server {
+export function createServer(registry: ProviderRegistry, githubClient: Pick<GitHubClient, 'getContext'> = new GitHubClient()): Server {
   return createHttpServer(async (request, response) => {
+    if (request.method === 'POST' && request.url === '/api/github/context') {
+      try {
+        const body = JSON.parse(await readBody(request)) as { repository?: unknown }
+        if (typeof body.repository !== 'string' || !body.repository.trim()) throw new Error('repository is required')
+        const context: GitHubContext = await githubClient.getContext(body.repository)
+        response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' })
+        response.end(JSON.stringify(context))
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : 'GitHub request failed'
+        writeError(response, message.includes('required') || message.includes('format') ? 400 : 502, message)
+      }
+      return
+    }
+
     if (request.method !== 'POST' || request.url !== '/api/agent/runs') {
       writeError(response, 404, 'Not found')
       return
@@ -83,7 +98,7 @@ export function createServer(registry: ProviderRegistry): Server {
 }
 
 export function startServer(port = Number(process.env.PORT ?? 8787), host = '127.0.0.1') {
-  const server = createServer(createConfiguredRegistry())
+  const server = createServer(createConfiguredRegistry(), new GitHubClient({ token: process.env.GITHUB_TOKEN, baseUrl: process.env.GITHUB_API_BASE_URL }))
   server.listen(port, host, () => console.log(`Forge API listening on http://${host}:${port}`))
   return server
 }
