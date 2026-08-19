@@ -44,6 +44,14 @@ Forge API (Node HTTP server)
 
 前端和 API 必须分开部署：GitHub Pages 只能承载静态前端，不能运行当前 Node API，也不应把厂商 API Key 写进前端构建产物。
 
+## GitHub Pages
+
+推送到 `main` 会通过 GitHub Actions 自动构建并部署 `apps/web` 到 GitHub Pages。页面地址为：
+
+`https://z-y-m-123.github.io/forge-agent-harness/`
+
+该静态站默认是 Mock 演示：不配置 API 时，模型连接面板只允许 Mock，避免用户的真实 Key 被发送到不存在的同源 `/api`。要启用真实 BYOK 和 GitHub 只读上下文，需要部署独立的 Forge API，并在 Pages 构建时提供 `VITE_API_BASE_URL=https://your-api.example.com`；该 API 必须启用 HTTPS 和 CORS 白名单。
+
 ## 技术栈
 
 - Frontend: React 18, TypeScript, Vite, Lucide

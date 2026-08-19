@@ -1,5 +1,6 @@
 import type { AgentEventInput } from './agent-events'
 import type { ProviderConnection } from './types'
+import { apiUrl } from './api-url'
 
 export interface AgentRunRequest {
   taskId: string
@@ -12,7 +13,7 @@ export interface AgentRunRequest {
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 
 export async function streamAgentRun(request: AgentRunRequest, fetcher: Fetcher = fetch): Promise<AgentEventInput[]> {
-  const response = await fetcher('/api/agent/runs', {
+  const response = await fetcher(apiUrl('/api/agent/runs'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(request)

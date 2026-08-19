@@ -1,5 +1,6 @@
 export type { GitHubContext } from './types'
 import type { GitHubContext } from './types'
+import { apiUrl } from './api-url'
 
 export interface GitHubFile {
   repository: string
@@ -11,7 +12,7 @@ export interface GitHubFile {
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 
 export async function loadGitHubContext(repository: string, fetcher: Fetcher = fetch): Promise<GitHubContext> {
-  const response = await fetcher('/api/github/context', {
+  const response = await fetcher(apiUrl('/api/github/context'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ repository })
@@ -31,7 +32,7 @@ export async function loadGitHubContext(repository: string, fetcher: Fetcher = f
 }
 
 export async function loadGitHubFile(repository: string, path: string, fetcher: Fetcher = fetch): Promise<GitHubFile> {
-  const response = await fetcher('/api/github/file', {
+  const response = await fetcher(apiUrl('/api/github/file'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ repository, path })
@@ -51,7 +52,7 @@ export async function loadGitHubFile(repository: string, path: string, fetcher: 
 }
 
 export async function loadGitHubFiles(repository: string, paths: string[], fetcher: Fetcher = fetch): Promise<GitHubFile[]> {
-  const response = await fetcher('/api/github/files', {
+  const response = await fetcher(apiUrl('/api/github/files'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ repository, paths })
