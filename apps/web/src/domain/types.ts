@@ -1,6 +1,14 @@
 export type Mode = 'workspace' | 'issue' | 'chat'
 export type TaskStatus = 'idle' | 'exploring' | 'proposal' | 'approved' | 'executing' | 'verifying' | 'review'
 export type Locale = 'zh-CN' | 'en-US'
+export type ProviderConnectionKind = 'openai-compatible' | 'anthropic' | 'mock'
+
+export interface ProviderConnection {
+  provider: ProviderConnectionKind
+  apiKey: string
+  baseUrl: string
+  model: string
+}
 
 export interface GitHubContext {
   repository: string
@@ -25,4 +33,5 @@ export interface AppState {
   taskStatus: TaskStatus
   githubContext?: GitHubContext
   githubReadEvidence: GitHubReadEvidence[]
+  connection?: ProviderConnection
 }

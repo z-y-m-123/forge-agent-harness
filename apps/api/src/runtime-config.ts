@@ -2,8 +2,29 @@ import { AnthropicProvider } from './anthropic-provider.js'
 import { MockProvider } from './mock-provider.js'
 import { OpenAICompatibleProvider } from './openai-compatible-provider.js'
 import { ProviderRegistry } from './provider-registry.js'
+import type { ProviderConnection } from './contracts.js'
 
 export type RuntimeEnv = Record<string, string | undefined>
+
+export function createProviderFromConnection(connection: ProviderConnection) {
+  if (connection.provider === 'mock') return new MockProvider()
+  const apiKey = connection.apiKey?.trim()
+  if (!apiKey) throw new Error('apiKey is required')
+  if (connection.provider === 'anthropic') {
+    return new AnthropicProvider({
+      id: 'anthropic',
+      apiKey,
+      baseUrl: connection.baseUrl?.trim() || 'https://api.anthropic.com',
+      model: connection.model?.trim() || 'claude-3-5-sonnet-latest'
+    })
+  }
+  return new OpenAICompatibleProvider({
+    id: 'openai-compatible',
+    apiKey,
+    baseUrl: connection.baseUrl?.trim() || 'https://api.openai.com/v1',
+    model: connection.model?.trim() || 'gpt-4o-mini'
+  })
+}
 
 export function createConfiguredRegistry(env: RuntimeEnv = process.env): ProviderRegistry {
   const providerId = env.FORGE_PROVIDER?.trim() || 'mock'

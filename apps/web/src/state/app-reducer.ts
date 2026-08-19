@@ -1,4 +1,4 @@
-import type { AppState, GitHubContext, GitHubReadEvidence, Locale, Mode } from '../domain/types'
+import type { AppState, GitHubContext, GitHubReadEvidence, Locale, Mode, ProviderConnection } from '../domain/types'
 
 export type AppAction =
   | { type: 'projectSelected'; projectId: string }
@@ -10,6 +10,7 @@ export type AppAction =
   | { type: 'githubContextLoaded'; context: GitHubContext }
   | { type: 'githubFileRead'; evidence: GitHubReadEvidence }
   | { type: 'localeChanged'; locale: Locale }
+  | { type: 'connectionChanged'; connection?: ProviderConnection }
 
 export const initialAppState: AppState = {
   locale: 'zh-CN',
@@ -42,6 +43,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     }
     case 'localeChanged':
       return { ...state, locale: action.locale }
+    case 'connectionChanged':
+      return { ...state, connection: action.connection }
     default:
       return state
   }

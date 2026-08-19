@@ -1,9 +1,10 @@
 import { createServer as createHttpServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { ProviderRegistry } from './provider-registry.js'
 import { createConfiguredRegistry } from './runtime-config.js'
+import { createProviderFromConnection } from './runtime-config.js'
 import { runAgentLoop } from './agent-loop.js'
 import { GitHubClient, type GitHubContext, type GitHubFile } from './github-client.js'
-import type { RunRequest } from './contracts.js'
+import type { ProviderConnection, RunRequest } from './contracts.js'
 
 const MAX_BODY_BYTES = 1024 * 1024
 
@@ -36,11 +37,34 @@ function parseRunRequest(body: string): RunRequest {
   if (candidate.provider !== undefined && typeof candidate.provider !== 'string') throw new Error('provider must be a string')
   if (candidate.approved !== undefined && typeof candidate.approved !== 'boolean') throw new Error('approved must be a boolean')
 
+  let connection: ProviderConnection | undefined
+  if (candidate.connection !== undefined) {
+    if (!candidate.connection || typeof candidate.connection !== 'object') throw new Error('connection must be an object')
+    const value = candidate.connection as Record<string, unknown>
+    if (value.provider !== 'openai-compatible' && value.provider !== 'anthropic' && value.provider !== 'mock') throw new Error('connection provider is invalid')
+    for (const field of ['apiKey', 'baseUrl', 'model']) {
+      if (value[field] !== undefined && typeof value[field] !== 'string') throw new Error(`connection ${field} must be a string`)
+    }
+    const apiKey = typeof value.apiKey === 'string' ? value.apiKey.trim() : undefined
+    const baseUrl = typeof value.baseUrl === 'string' ? value.baseUrl.trim() : undefined
+    const model = typeof value.model === 'string' ? value.model.trim() : undefined
+    if (apiKey && apiKey.length > 4096) throw new Error('apiKey is too long')
+    if (baseUrl) {
+      if (baseUrl.length > 2048) throw new Error('baseUrl is too long')
+      let parsedUrl: URL
+      try { parsedUrl = new URL(baseUrl) } catch { throw new Error('baseUrl must be a valid URL') }
+      if (parsedUrl.protocol !== 'https:' && parsedUrl.hostname !== 'localhost' && parsedUrl.hostname !== '127.0.0.1') throw new Error('baseUrl must use HTTPS')
+    }
+    if (model && model.length > 200) throw new Error('model is too long')
+    connection = { provider: value.provider, ...(apiKey ? { apiKey } : {}), ...(baseUrl ? { baseUrl } : {}), ...(model ? { model } : {}) }
+  }
+
   return {
     taskId: candidate.taskId,
     message: candidate.message,
     provider: typeof candidate.provider === 'string' && candidate.provider.trim() ? candidate.provider : undefined,
-    approved: candidate.approved === true
+    approved: candidate.approved === true,
+    connection
   }
 }
 
@@ -112,9 +136,10 @@ export function createServer(registry: ProviderRegistry, githubClient: GitHubRea
 
     let provider
     try {
-      provider = registry.get(input.provider)
+      provider = input.connection ? createProviderFromConnection(input.connection) : registry.get(input.provider)
     } catch (cause) {
-      writeError(response, 404, cause instanceof Error ? cause.message : 'Unknown provider')
+      const message = cause instanceof Error ? cause.message : 'Unknown provider'
+      writeError(response, message.includes('apiKey') ? 400 : 404, message)
       return
     }
 

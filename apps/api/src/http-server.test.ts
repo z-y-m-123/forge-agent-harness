@@ -40,6 +40,24 @@ describe('agent run HTTP endpoint', () => {
     expect(result.response.status).toBe(404)
   })
 
+  it('accepts a per-request mock connection without using the server registry', async () => {
+    const result = await request(JSON.stringify({ taskId: 'task-1', message: 'inspect', provider: 'missing', connection: { provider: 'mock' } }))
+    expect(result.response.status).toBe(200)
+    expect(result.text).toContain('Mock provider understood: inspect')
+  })
+
+  it('rejects a BYOK connection without an API key', async () => {
+    const result = await request(JSON.stringify({ taskId: 'task-1', message: 'inspect', connection: { provider: 'openai-compatible' } }))
+    expect(result.response.status).toBe(400)
+    expect(result.text).toContain('apiKey is required')
+  })
+
+  it('rejects insecure external BYOK base URLs', async () => {
+    const result = await request(JSON.stringify({ taskId: 'task-1', message: 'inspect', connection: { provider: 'openai-compatible', apiKey: 'key', baseUrl: 'http://example.com/v1' } }))
+    expect(result.response.status).toBe(400)
+    expect(result.text).toContain('baseUrl must use HTTPS')
+  })
+
   it('streams ordered events as newline-delimited JSON', async () => {
     const result = await request(JSON.stringify({ taskId: 'task-1', message: 'inspect retries' }))
 

@@ -14,4 +14,14 @@ export interface RunRequest {
   message: string
   provider?: string
   approved?: boolean
+  connection?: ProviderConnection
+}
+
+export type ProviderConnectionKind = 'openai-compatible' | 'anthropic' | 'mock'
+
+export interface ProviderConnection {
+  provider: ProviderConnectionKind
+  apiKey?: string
+  baseUrl?: string
+  model?: string
 }

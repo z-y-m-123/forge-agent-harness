@@ -30,7 +30,7 @@ export function WorkspacePage() {
 
   const executeDemo = async () => {
     try {
-      const events = await streamAgentRun({ taskId, message: github ? `Inspect the read-only GitHub context for ${github.repository}.` : 'Inspect retry handling without editing code.', provider: undefined, approved: true })
+      const events = await streamAgentRun({ taskId, message: github ? `Inspect the read-only GitHub context for ${github.repository}.` : 'Inspect retry handling without editing code.', provider: undefined, approved: true, connection: state.connection })
       setTrajectory(events.reduce((log, event) => appendEvent(log, event), createEventLog(taskId)))
     } catch {
       const result = await runDemoExecution(true)

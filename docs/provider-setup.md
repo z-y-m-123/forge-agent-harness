@@ -1,5 +1,17 @@
 # Provider 配置
 
+## 用户自带 Key（BYOK）
+
+正式网站建议使用网页里的“模型连接”入口，让每位用户自己提供 Key。连接配置只在当前 React 会话内存中保存，随一次运行请求通过 HTTPS 发给 API；不会写入 `localStorage`、URL、事件轨迹或服务端日志，关闭页面即失效。
+
+网页连接支持 OpenAI-compatible（OpenAI、DeepSeek、通义、智谱等）、Anthropic 和无需 Key 的 Mock 演示。后端 `POST /api/agent/runs` 接受临时 `connection` 字段：
+
+```json
+{"taskId":"task-1","message":"解释这个重试问题","approved":true,"connection":{"provider":"openai-compatible","apiKey":"用户本次输入的 Key","baseUrl":"https://api.deepseek.com/v1","model":"deepseek-chat"}}
+```
+
+外部 `baseUrl` 必须使用 HTTPS；本机 `localhost`/`127.0.0.1` 可用于开发。服务端收到请求后只创建一次 Provider，不把连接配置注册到全局 Provider Registry。
+
 Forge API 默认使用不会访问网络的 `mock` Provider。要接入 DeepSeek 或其他 OpenAI-compatible 厂商，在运行 API 服务的终端设置服务端环境变量：
 
 ```powershell

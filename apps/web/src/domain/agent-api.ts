@@ -1,10 +1,12 @@
 import type { AgentEventInput } from './agent-events'
+import type { ProviderConnection } from './types'
 
 export interface AgentRunRequest {
   taskId: string
   message: string
   provider?: string
   approved?: boolean
+  connection?: ProviderConnection
 }
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
