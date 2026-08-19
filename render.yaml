@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: forge-agent-harness-api
+    runtime: node
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: pnpm --filter @forge-agent/api dev
+    healthCheckPath: /healthz
+    envVars:
+      - key: FORGE_ALLOWED_ORIGINS
+        value: https://z-y-m-123.github.io
+      - key: FORGE_PROVIDER
+        value: mock

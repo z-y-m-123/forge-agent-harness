@@ -25,6 +25,15 @@ async function request(body: string, provider = new ProviderRegistry([new MockPr
   return { response, text: await response.text() }
 }
 
+async function requestWithOptions(path: string, init: RequestInit, allowedOrigins: string[] = []) {
+  const server = createServer(new ProviderRegistry([new MockProvider()]), undefined, { allowedOrigins })
+  servers.push(server)
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', () => resolve()))
+  const address = server.address()
+  if (!address || typeof address === 'string') throw new Error('Test server did not bind to a port')
+  return fetch(`http://127.0.0.1:${address.port}${path}`, init)
+}
+
 describe('agent run HTTP endpoint', () => {
   it('returns 400 for malformed JSON and missing messages', async () => {
     const malformed = await request('{')
@@ -97,5 +106,22 @@ describe('agent run HTTP endpoint', () => {
     expect(result.response.status).toBe(200)
     expect(result.text).toContain('provider.failed')
     expect(result.text).not.toContain('upstream secret')
+  })
+
+  it('reports API health without model or GitHub credentials', async () => {
+    const response = await requestWithOptions('/healthz', { method: 'GET' })
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ status: 'ok' })
+  })
+
+  it('allows CORS preflight only for configured origins', async () => {
+    const pagesOrigin = 'https://z-y-m-123.github.io'
+    const allowed = await requestWithOptions('/api/agent/runs', { method: 'OPTIONS', headers: { origin: pagesOrigin } }, [pagesOrigin])
+    const blocked = await requestWithOptions('/api/agent/runs', { method: 'OPTIONS', headers: { origin: 'https://untrusted.example' } }, [pagesOrigin])
+
+    expect(allowed.status).toBe(204)
+    expect(allowed.headers.get('access-control-allow-origin')).toBe(pagesOrigin)
+    expect(blocked.status).toBe(403)
+    expect(blocked.headers.get('access-control-allow-origin')).toBeNull()
   })
 })

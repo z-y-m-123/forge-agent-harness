@@ -8,6 +8,25 @@ import type { ProviderConnection, RunRequest } from './contracts.js'
 
 const MAX_BODY_BYTES = 1024 * 1024
 
+export interface ApiServerOptions {
+  allowedOrigins?: string[]
+}
+
+export function parseAllowedOrigins(value: string | undefined): string[] {
+  if (!value) return []
+  return [...new Set(value.split(',').map(item => item.trim()).filter(isSafeOrigin))]
+}
+
+function isSafeOrigin(value: string): boolean {
+  try {
+    const url = new URL(value)
+    const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1'
+    return url.origin === value && (url.protocol === 'https:' || isLocal)
+  } catch {
+    return false
+  }
+}
+
 function writeError(response: ServerResponse, status: number, message: string) {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8' })
   response.end(JSON.stringify({ error: message }))
@@ -70,8 +89,34 @@ function parseRunRequest(body: string): RunRequest {
 
 type GitHubReadOnlyClient = Pick<GitHubClient, 'getContext'> & Partial<Pick<GitHubClient, 'getFile' | 'getFiles'>>
 
-export function createServer(registry: ProviderRegistry, githubClient: GitHubReadOnlyClient = new GitHubClient()): Server {
+export function createServer(registry: ProviderRegistry, githubClient: GitHubReadOnlyClient = new GitHubClient(), options: ApiServerOptions = {}): Server {
+  const allowedOrigins = new Set(options.allowedOrigins ?? [])
   return createHttpServer(async (request, response) => {
+    const origin = request.headers.origin
+    const allowedOrigin = origin && allowedOrigins.has(origin) ? origin : undefined
+    if (allowedOrigin) {
+      response.setHeader('access-control-allow-origin', allowedOrigin)
+      response.setHeader('access-control-allow-methods', 'POST, OPTIONS')
+      response.setHeader('access-control-allow-headers', 'content-type')
+      response.setHeader('vary', 'Origin')
+    }
+
+    if (request.method === 'OPTIONS' && request.url?.startsWith('/api/')) {
+      if (origin && !allowedOrigin) {
+        writeError(response, 403, 'Origin is not allowed')
+      } else {
+        response.writeHead(204)
+        response.end()
+      }
+      return
+    }
+
+    if (request.method === 'GET' && request.url === '/healthz') {
+      response.writeHead(200, { 'cache-control': 'no-store', 'content-type': 'application/json; charset=utf-8' })
+      response.end(JSON.stringify({ status: 'ok' }))
+      return
+    }
+
     if (request.method === 'POST' && request.url === '/api/github/context') {
       try {
         const body = JSON.parse(await readBody(request)) as { repository?: unknown }
@@ -159,7 +204,11 @@ export function createServer(registry: ProviderRegistry, githubClient: GitHubRea
 }
 
 export function startServer(port = Number(process.env.PORT ?? 8787), host = '127.0.0.1') {
-  const server = createServer(createConfiguredRegistry(), new GitHubClient({ token: process.env.GITHUB_TOKEN, baseUrl: process.env.GITHUB_API_BASE_URL }))
+  const server = createServer(
+    createConfiguredRegistry(),
+    new GitHubClient({ token: process.env.GITHUB_TOKEN, baseUrl: process.env.GITHUB_API_BASE_URL }),
+    { allowedOrigins: parseAllowedOrigins(process.env.FORGE_ALLOWED_ORIGINS) }
+  )
   server.listen(port, host, () => console.log(`Forge API listening on http://${host}:${port}`))
   return server
 }

@@ -52,6 +52,8 @@ Forge API (Node HTTP server)
 
 该静态站默认是 Mock 演示：不配置 API 时，模型连接面板只允许 Mock，避免用户的真实 Key 被发送到不存在的同源 `/api`。要启用真实 BYOK 和 GitHub 只读上下文，需要部署独立的 Forge API，并在 Pages 构建时提供 `VITE_API_BASE_URL=https://your-api.example.com`；该 API 必须启用 HTTPS 和 CORS 白名单。
 
+仓库提供 `render.yaml` 作为 API 部署起点。部署后在 GitHub Actions 的 Repository Variable 中设置 `FORGE_API_BASE_URL`，并推送一次 `main` 触发 Pages 重建。API 使用 `FORGE_ALLOWED_ORIGINS` 白名单（默认已填 Pages 域名）和 `/healthz` 健康检查。详细步骤见 [docs/provider-setup.md](docs/provider-setup.md)。
+
 ## 技术栈
 
 - Frontend: React 18, TypeScript, Vite, Lucide

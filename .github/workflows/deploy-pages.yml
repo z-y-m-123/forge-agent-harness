@@ -32,6 +32,8 @@ jobs:
           enablement: true
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @forge-agent/web build
+        env:
+          VITE_API_BASE_URL: ${{ vars.FORGE_API_BASE_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
