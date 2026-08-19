@@ -31,6 +31,7 @@ it('uses connected GitHub repository facts in the code workspace', async () => {
   expect(screen.getAllByText('src/index.ts').at(-1)).toBeVisible()
   expect(screen.getByText('只读 GitHub 上下文')).toBeVisible()
   expect(screen.getByText('候选范围')).toBeVisible()
+  expect(screen.getByText('尚未读取文件正文')).toBeVisible()
   expect(screen.queryByText('src/http/retry.ts')).not.toBeInTheDocument()
 })
 
@@ -43,6 +44,10 @@ it('reads a selected GitHub file into the read-only code panel', async () => {
   expect(loadGitHubFile).toHaveBeenCalledWith('octo/forge', 'src/index.ts')
   expect(await screen.findByText('export const forge = true')).toBeVisible()
   expect(screen.getByText('GitHub 事实 · 已读取文件正文')).toBeVisible()
+  expect(screen.getByText('已读取 GitHub 文件：src/index.ts')).toBeVisible()
+  expect(screen.getByText('已读取文件证据')).toBeVisible()
+  expect(screen.getAllByText('src/index.ts').at(-1)).toBeVisible()
+  expect(screen.getAllByText((_content, element) => element?.textContent?.includes('file-sha') ?? false).at(-1)).toBeVisible()
 })
 
 it('allows retrying a failed GitHub file read', async () => {

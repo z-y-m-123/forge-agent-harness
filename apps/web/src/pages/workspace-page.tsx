@@ -10,7 +10,7 @@ import { loadGitHubFile, type GitHubFile } from '../domain/github-api'
 const demoFiles = ['src/http/retry.ts', 'src/http/retry.test.ts', 'tests']
 
 export function WorkspacePage() {
-  const { state } = useApp()
+  const { state, dispatch } = useApp()
   const github = state.githubContext
   const repository = github?.repository ?? 'acme/api-service'
   const files = github?.files.length ? github.files : demoFiles
@@ -39,7 +39,9 @@ export function WorkspacePage() {
     setFileError('')
     setLoadedFile(undefined)
     try {
-      setLoadedFile(await loadGitHubFile(github.repository, file))
+      const loaded = await loadGitHubFile(github.repository, file)
+      setLoadedFile(loaded)
+      dispatch({ type: 'githubFileRead', evidence: { repository: loaded.repository, path: loaded.path, ...(loaded.sha ? { sha: loaded.sha } : {}), readAt: new Date().toISOString() } })
       setFileStatus('idle')
     } catch (cause) {
       setFileStatus('error')
@@ -64,6 +66,6 @@ export function WorkspacePage() {
         <div className="test-proof"><TestTube2 size={17} /><div><strong>Focused test passed</strong><span>retry.test.ts · 8 assertions · 0.42s</span></div><CheckCircle2 size={19} /></div>
       </>}
     </section>
-    <aside className="agent-pane"><small>Agent trajectory</small><ol><li className="complete">探索项目约定</li><li className="complete">定位候选文件</li><li className="active">等待任务批准</li>{trajectory.events.map(event => <li key={event.id} className="complete">{event.summary}</li>)}{trajectory.events.length === 0 && <li>执行与验证</li>}</ol><TaskSpecPanel onApproved={executeDemo} /></aside>
+    <aside className="agent-pane"><small>Agent trajectory</small><ol><li className="complete">探索项目约定</li><li className="complete">定位候选文件</li>{state.githubReadEvidence.map(evidence => <li className="complete" key={`${evidence.repository}/${evidence.path}/${evidence.readAt}`}>已读取 GitHub 文件：{evidence.path}</li>)}<li className="active">等待任务批准</li>{trajectory.events.map(event => <li key={event.id} className="complete">{event.summary}</li>)}{trajectory.events.length === 0 && <li>执行与验证</li>}</ol><TaskSpecPanel onApproved={executeDemo} /></aside>
   </main>
 }
