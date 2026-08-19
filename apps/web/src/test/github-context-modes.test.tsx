@@ -2,9 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import { App } from '../app'
 
-const { loadGitHubContext, loadGitHubFile } = vi.hoisted(() => ({ loadGitHubContext: vi.fn(), loadGitHubFile: vi.fn() }))
+const { loadGitHubContext, loadGitHubFile, loadGitHubFiles } = vi.hoisted(() => ({ loadGitHubContext: vi.fn(), loadGitHubFile: vi.fn(), loadGitHubFiles: vi.fn() }))
 
-vi.mock('../domain/github-api', () => ({ loadGitHubContext, loadGitHubFile }))
+vi.mock('../domain/github-api', () => ({ loadGitHubContext, loadGitHubFile, loadGitHubFiles }))
 
 const context = {
   repository: 'octo/forge',
@@ -62,6 +62,23 @@ it('allows retrying a failed GitHub file read', async () => {
 
   expect(loadGitHubFile).toHaveBeenCalledTimes(initialCalls + 2)
   expect(await screen.findByText('export const recovered = true')).toBeVisible()
+})
+
+it('reads selected GitHub files in a batch and shows a metadata-only summary', async () => {
+  loadGitHubFiles.mockResolvedValue([
+    { repository: 'octo/forge', path: 'src/index.ts', content: 'export const forge = true\n', sha: 'file-sha' },
+    { repository: 'octo/forge', path: 'tests/index.test.ts', content: 'it("works", () => {})\n', sha: 'test-sha' }
+  ])
+  await connectRepository()
+  fireEvent.click(screen.getByText('代码工作台').closest('button')!)
+  fireEvent.click(screen.getByRole('checkbox', { name: '选择 src/index.ts' }))
+  fireEvent.click(screen.getByRole('checkbox', { name: '选择 tests/index.test.ts' }))
+  fireEvent.click(screen.getByRole('button', { name: '读取已选文件（2）' }))
+
+  expect(loadGitHubFiles).toHaveBeenCalledWith('octo/forge', ['src/index.ts', 'tests/index.test.ts'])
+  expect(await screen.findByText('项目摘要')).toBeVisible()
+  expect(screen.getByText(/已读取 2 个文件/)).toBeVisible()
+  expect(screen.getByText('已读取 GitHub 文件：tests/index.test.ts')).toBeVisible()
 })
 
 it('uses the first open GitHub issue in issue mode', async () => {

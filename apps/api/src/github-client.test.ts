@@ -59,4 +59,24 @@ describe('GitHub read-only client', () => {
     await expect(client.getFile('acme/api-service', '../.env')).rejects.toThrow('File path must be a safe repository-relative path')
     expect(fetcher).not.toHaveBeenCalled()
   })
+
+  it('reads up to 100 files and rejects batches over the limit', async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const path = String(input).split('/contents/')[1]
+      return new Response(JSON.stringify({ content: Buffer.from(`// ${path}\n`).toString('base64'), encoding: 'base64', sha: `${path}-sha` }))
+    })
+    const client = new GitHubClient({ fetcher })
+    const files = await client.getFiles('acme/api-service', ['src/a.ts', 'src/b.ts'])
+
+    expect(files).toHaveLength(2)
+    expect(files[0]).toMatchObject({ path: 'src/a.ts', content: '// src/a.ts\n' })
+    await expect(client.getFiles('acme/api-service', Array.from({ length: 101 }, (_, index) => `src/${index}.ts`))).rejects.toThrow('A maximum of 100 files can be read at once')
+  })
+
+  it('rejects a batch whose decoded contents exceed 10 MB', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ content: Buffer.from('x'.repeat(10 * 1024 * 1024 + 1)).toString('base64'), encoding: 'base64' })))
+    const client = new GitHubClient({ fetcher })
+
+    await expect(client.getFiles('acme/api-service', ['large.txt'])).rejects.toThrow('Selected GitHub files exceed the 10 MB limit')
+  })
 })

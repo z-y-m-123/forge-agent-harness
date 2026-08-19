@@ -14,6 +14,9 @@ export interface GitHubFile {
   sha?: string
 }
 
+export const MAX_GITHUB_BATCH_FILES = 100
+export const MAX_GITHUB_BATCH_BYTES = 10 * 1024 * 1024
+
 export interface GitHubClientOptions {
   token?: string
   baseUrl?: string
@@ -63,6 +66,16 @@ export class GitHubClient {
       content,
       ...(typeof payload.sha === 'string' && payload.sha ? { sha: payload.sha } : {})
     }
+  }
+
+  async getFiles(repository: string, paths: string[]): Promise<GitHubFile[]> {
+    if (!Array.isArray(paths) || paths.length === 0) throw new Error('At least one file path is required')
+    if (paths.length > MAX_GITHUB_BATCH_FILES) throw new Error(`A maximum of ${MAX_GITHUB_BATCH_FILES} files can be read at once`)
+    const normalizedPaths = paths.map(normalizeFilePath)
+    const files = await Promise.all(normalizedPaths.map(path => this.getFile(repository, path)))
+    const totalBytes = files.reduce((total, file) => total + Buffer.byteLength(file.content, 'utf8'), 0)
+    if (totalBytes > MAX_GITHUB_BATCH_BYTES) throw new Error('Selected GitHub files exceed the 10 MB limit')
+    return files
   }
 
   private async get(path: string): Promise<unknown> {

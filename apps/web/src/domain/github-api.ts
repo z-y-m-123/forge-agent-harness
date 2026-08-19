@@ -49,3 +49,23 @@ export async function loadGitHubFile(repository: string, path: string, fetcher: 
   }
   return JSON.parse(body) as GitHubFile
 }
+
+export async function loadGitHubFiles(repository: string, paths: string[], fetcher: Fetcher = fetch): Promise<GitHubFile[]> {
+  const response = await fetcher('/api/github/files', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ repository, paths })
+  })
+  const body = await response.text()
+  if (!response.ok) {
+    let message = `GitHub files request failed (${response.status})`
+    try {
+      const parsed: unknown = JSON.parse(body)
+      if (parsed && typeof parsed === 'object' && typeof (parsed as { error?: unknown }).error === 'string') message = (parsed as { error: string }).error
+    } catch {
+      if (body.trim()) message = body.trim()
+    }
+    throw new Error(message)
+  }
+  return JSON.parse(body) as GitHubFile[]
+}

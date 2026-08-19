@@ -44,7 +44,7 @@ function parseRunRequest(body: string): RunRequest {
   }
 }
 
-type GitHubReadOnlyClient = Pick<GitHubClient, 'getContext'> & Partial<Pick<GitHubClient, 'getFile'>>
+type GitHubReadOnlyClient = Pick<GitHubClient, 'getContext'> & Partial<Pick<GitHubClient, 'getFile' | 'getFiles'>>
 
 export function createServer(registry: ProviderRegistry, githubClient: GitHubReadOnlyClient = new GitHubClient()): Server {
   return createHttpServer(async (request, response) => {
@@ -75,6 +75,23 @@ export function createServer(registry: ProviderRegistry, githubClient: GitHubRea
         const message = cause instanceof Error ? cause.message : ''
         const isInputError = message.includes('required') || message.includes('format') || message.includes('safe repository-relative path')
         writeError(response, isInputError ? 400 : 502, isInputError ? message : 'Unable to read GitHub file')
+      }
+      return
+    }
+
+    if (request.method === 'POST' && request.url === '/api/github/files') {
+      try {
+        const body = JSON.parse(await readBody(request)) as { repository?: unknown; paths?: unknown }
+        if (typeof body.repository !== 'string' || !body.repository.trim()) throw new Error('repository is required')
+        if (!Array.isArray(body.paths) || body.paths.length === 0 || body.paths.some(path => typeof path !== 'string' || !path.trim())) throw new Error('paths must contain at least one file path')
+        if (!githubClient.getFiles) throw new Error('GitHub batch file reading is unavailable')
+        const files = await githubClient.getFiles(body.repository, body.paths)
+        response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' })
+        response.end(JSON.stringify(files))
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : ''
+        const isInputError = message.includes('required') || message.includes('must contain') || message.includes('format') || message.includes('safe repository-relative path') || message.includes('maximum')
+        writeError(response, isInputError ? 400 : 502, isInputError ? message : 'Unable to read selected GitHub files')
       }
       return
     }

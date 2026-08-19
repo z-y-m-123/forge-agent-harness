@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { loadGitHubContext, loadGitHubFile } from '../domain/github-api'
+import { loadGitHubContext, loadGitHubFile, loadGitHubFiles } from '../domain/github-api'
 
 describe('GitHub context client', () => {
   it('sends only the repository name and parses the read-only context', async () => {
@@ -27,5 +27,12 @@ describe('GitHub context client', () => {
       method: 'POST',
       body: JSON.stringify({ repository: 'acme/api-service', path: 'src/index.ts' })
     }))
+  })
+
+  it('requests selected GitHub files as one read-only batch', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => new Response(JSON.stringify([{ repository: 'acme/api-service', path: 'src/a.ts', content: '// a\n' }]), { status: 200 }))
+
+    await expect(loadGitHubFiles('acme/api-service', ['src/a.ts'], fetcher)).resolves.toEqual([{ repository: 'acme/api-service', path: 'src/a.ts', content: '// a\n' }])
+    expect(fetcher).toHaveBeenCalledWith('/api/github/files', expect.objectContaining({ method: 'POST', body: JSON.stringify({ repository: 'acme/api-service', paths: ['src/a.ts'] }) }))
   })
 })
