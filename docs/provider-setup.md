@@ -12,17 +12,17 @@
 
 外部 `baseUrl` 必须使用 HTTPS；本机 `localhost`/`127.0.0.1` 可用于开发。服务端收到请求后只创建一次 Provider，不把连接配置注册到全局 Provider Registry。
 
-## Pages API 部署
+## 可选云端 API 部署
 
-GitHub Pages 只能部署静态前端。生产 API 可通过仓库根目录的 `render.yaml` 部署到 Render，或部署到任何支持 Node 22 和 HTTPS 的服务。API 必须配置：
+本项目推荐本地运行 Web 与 API。若需要让其他用户访问，可通过仓库根目录的 `render.yaml` 部署到 Render，或部署到任何支持 Node 22 和 HTTPS 的服务。API 必须配置：
 
 ```text
-FORGE_ALLOWED_ORIGINS=https://z-y-m-123.github.io
+FORGE_ALLOWED_ORIGINS=http://localhost:5173
 FORGE_PROVIDER=mock
 HOST=0.0.0.0
 ```
 
-部署成功后，在 GitHub 仓库的 **Settings -> Secrets and variables -> Actions -> Variables** 创建 `FORGE_API_BASE_URL`，值为 API 的 HTTPS 地址（例如 `https://forge-agent-harness-api.onrender.com`）。下次推送 `main` 时，Pages 构建会注入这个地址；不会把模型 Key 写入静态站点。
+部署成功后，把 Web 开发服务器或自己的前端部署配置为 `VITE_API_BASE_URL=https://your-api.example.com`。不会把模型 Key 写入前端构建产物。
 
 `GET /healthz` 会返回 `{ "status": "ok" }`，可用于 Render、Railway 或反向代理健康检查。API 对浏览器请求只允许 `FORGE_ALLOWED_ORIGINS` 中的确切来源，并拒绝其他来源的跨域预检。
 

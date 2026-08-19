@@ -42,17 +42,9 @@ Forge API (Node HTTP server)
   `-- Agent loop -> NDJSON event stream
 ```
 
-前端和 API 必须分开部署：GitHub Pages 只能承载静态前端，不能运行当前 Node API，也不应把厂商 API Key 写进前端构建产物。
+前端和 API 在本地一起运行：浏览器打开本地 Vite 地址，Vite 将 `/api` 代理到本机 Forge API。这样用户可以自行控制代码、模型 Key、GitHub Token 和运行环境，不依赖 GitHub Pages 或 Render。
 
-## GitHub Pages
-
-推送到 `main` 会通过 GitHub Actions 自动构建并部署 `apps/web` 到 GitHub Pages。页面地址为：
-
-`https://z-y-m-123.github.io/forge-agent-harness/`
-
-该静态站默认是 Mock 演示：不配置 API 时，模型连接面板只允许 Mock，避免用户的真实 Key 被发送到不存在的同源 `/api`。要启用真实 BYOK 和 GitHub 只读上下文，需要部署独立的 Forge API，并在 Pages 构建时提供 `VITE_API_BASE_URL=https://your-api.example.com`；该 API 必须启用 HTTPS 和 CORS 白名单。
-
-仓库提供 `render.yaml` 作为 API 部署起点。部署后在 GitHub Actions 的 Repository Variable 中设置 `FORGE_API_BASE_URL`，并推送一次 `main` 触发 Pages 重建。API 使用 `FORGE_ALLOWED_ORIGINS` 白名单（默认已填 Pages 域名）和 `/healthz` 健康检查。详细步骤见 [docs/provider-setup.md](docs/provider-setup.md)。
+GitHub Actions 只做测试、类型检查和构建，不发布网页。仓库提供 `render.yaml` 作为可选的云端 API 部署模板，但不是使用本项目的前置条件。
 
 ## 技术栈
 
@@ -80,7 +72,29 @@ pnpm api:dev
 pnpm dev
 ```
 
-然后打开 Vite 输出的本地地址。未填写模型连接时，可选择 `Mock 演示`体验完整前端流程。
+然后打开 Vite 输出的本地地址（通常是 `http://localhost:5173`）。未填写模型连接时，可选择 `Mock 演示`体验完整前端流程。
+
+### 下载后快速开始
+
+```powershell
+git clone https://github.com/z-y-m-123/forge-agent-harness.git
+cd forge-agent-harness
+pnpm install
+```
+
+启动两个终端：
+
+```powershell
+# 终端 1：启动 API
+pnpm api:dev
+```
+
+```powershell
+# 终端 2：启动 Web
+pnpm dev
+```
+
+用户可以直接修改代码、替换 Provider 适配器，或在后续 Harness 版本中加入自己的工具权限和执行沙箱。
 
 ### 检查命令
 
@@ -153,14 +167,13 @@ BYOK 的默认安全规则：
 }
 ```
 
-## 部署建议
+## 可选部署
 
-- Web：GitHub Pages、Cloudflare Pages 或 Vercel
-- API：Cloudflare Workers、Render、Railway、Fly.io 或 VPS
+- API：Render、Railway、Fly.io、VPS 或国内云服务器
 - API：必须启用 HTTPS、配置 CORS 白名单、限制请求体大小、脱敏应用日志并设置限流
 - Web：通过环境变量配置 API 基址，禁止将任何供应商 Key 编译到静态文件中
 
-GitHub Pages 适合部署 Web 前端，但仍需一个独立的 API 服务承载 GitHub 访问、模型转发和安全审计。
+如果部署 API，前端仍需配置 `VITE_API_BASE_URL` 指向 API 的 HTTPS 地址，并设置 CORS 白名单。对国内用户，建议优先使用国内云服务器或 Serverless；本地运行是最简单的开发方式。
 
 ## 下一阶段
 

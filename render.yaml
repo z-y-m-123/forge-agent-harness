@@ -9,6 +9,6 @@ services:
       - key: HOST
         value: 0.0.0.0
       - key: FORGE_ALLOWED_ORIGINS
-        value: https://z-y-m-123.github.io
+        value: http://localhost:5173
       - key: FORGE_PROVIDER
         value: mock
