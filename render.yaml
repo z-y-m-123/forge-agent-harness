@@ -6,6 +6,8 @@ services:
     startCommand: pnpm --filter @forge-agent/api dev
     healthCheckPath: /healthz
     envVars:
+      - key: HOST
+        value: 0.0.0.0
       - key: FORGE_ALLOWED_ORIGINS
         value: https://z-y-m-123.github.io
       - key: FORGE_PROVIDER

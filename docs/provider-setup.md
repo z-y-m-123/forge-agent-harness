@@ -19,6 +19,7 @@ GitHub Pages 只能部署静态前端。生产 API 可通过仓库根目录的 `
 ```text
 FORGE_ALLOWED_ORIGINS=https://z-y-m-123.github.io
 FORGE_PROVIDER=mock
+HOST=0.0.0.0
 ```
 
 部署成功后，在 GitHub 仓库的 **Settings -> Secrets and variables -> Actions -> Variables** 创建 `FORGE_API_BASE_URL`，值为 API 的 HTTPS 地址（例如 `https://forge-agent-harness-api.onrender.com`）。下次推送 `main` 时，Pages 构建会注入这个地址；不会把模型 Key 写入静态站点。

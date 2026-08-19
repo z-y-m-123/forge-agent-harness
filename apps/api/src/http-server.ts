@@ -203,7 +203,7 @@ export function createServer(registry: ProviderRegistry, githubClient: GitHubRea
   })
 }
 
-export function startServer(port = Number(process.env.PORT ?? 8787), host = '127.0.0.1') {
+export function startServer(port = Number(process.env.PORT ?? 8787), host = process.env.HOST ?? '127.0.0.1') {
   const server = createServer(
     createConfiguredRegistry(),
     new GitHubClient({ token: process.env.GITHUB_TOKEN, baseUrl: process.env.GITHUB_API_BASE_URL }),
