@@ -11,10 +11,18 @@ export interface GitHubContext {
   issues: Array<{ number: number; title: string; state: string }>
 }
 
+export interface GitHubReadEvidence {
+  repository: string
+  path: string
+  sha?: string
+  readAt: string
+}
+
 export interface AppState {
   locale: Locale
   projectId: string | null
   mode: Mode | null
   taskStatus: TaskStatus
   githubContext?: GitHubContext
+  githubReadEvidence: GitHubReadEvidence[]
 }

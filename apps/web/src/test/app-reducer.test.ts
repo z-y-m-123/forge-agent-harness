@@ -43,4 +43,24 @@ describe('appReducer', () => {
     expect(connected.taskStatus).toBe('idle')
     expect(connected.githubContext).toEqual(githubContext)
   })
+
+  it('stores GitHub file read evidence and replaces repeated paths at the end', () => {
+    const first = { repository: 'octo/forge', path: 'README.md', sha: 'readme-sha', readAt: '2026-08-19T09:00:00.000Z' }
+    const second = { repository: 'octo/forge', path: 'src/index.ts', sha: 'file-sha', readAt: '2026-08-19T10:00:00.000Z' }
+    const replacement = { ...second, sha: 'new-file-sha', readAt: '2026-08-19T11:00:00.000Z' }
+
+    const withFirst = appReducer(initialAppState, { type: 'githubFileRead', evidence: first })
+    const withSecond = appReducer(withFirst, { type: 'githubFileRead', evidence: second })
+    const withReplacement = appReducer(withSecond, { type: 'githubFileRead', evidence: replacement })
+
+    expect(withReplacement.githubReadEvidence).toEqual([first, replacement])
+  })
+
+  it('clears GitHub read evidence when a different repository is loaded', () => {
+    const evidence = { repository: 'octo/forge', path: 'src/index.ts', sha: 'file-sha', readAt: '2026-08-19T10:00:00.000Z' }
+    const working = appReducer(initialAppState, { type: 'githubFileRead', evidence })
+    const connected = appReducer(working, { type: 'githubContextLoaded', context: { ...githubContext, repository: 'other/service' } })
+
+    expect(connected.githubReadEvidence).toEqual([])
+  })
 })
