@@ -32,4 +32,31 @@ describe('GitHub read-only client', () => {
     await expect(client.getContext('not-a-repository')).rejects.toThrow('Repository must use owner/name format')
     expect(fetcher).not.toHaveBeenCalled()
   })
+
+  it('reads a repository file and decodes its base64 contents', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
+      content: Buffer.from('export const answer = 42\n').toString('base64'),
+      encoding: 'base64',
+      sha: 'file-sha'
+    })))
+    const client = new GitHubClient({ token: 'server-secret', fetcher })
+
+    await expect(client.getFile('acme/api-service', 'src/index.ts')).resolves.toEqual({
+      repository: 'acme/api-service',
+      path: 'src/index.ts',
+      content: 'export const answer = 42\n',
+      sha: 'file-sha'
+    })
+    expect(fetcher).toHaveBeenCalledWith('https://api.github.com/repos/acme/api-service/contents/src/index.ts', expect.objectContaining({
+      headers: expect.objectContaining({ authorization: 'Bearer server-secret' })
+    }))
+  })
+
+  it('rejects unsafe repository file paths before making a request', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const client = new GitHubClient({ fetcher })
+
+    await expect(client.getFile('acme/api-service', '../.env')).rejects.toThrow('File path must be a safe repository-relative path')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
 })

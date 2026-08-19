@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { loadGitHubContext } from '../domain/github-api'
+import { loadGitHubContext, loadGitHubFile } from '../domain/github-api'
 
 describe('GitHub context client', () => {
   it('sends only the repository name and parses the read-only context', async () => {
@@ -17,5 +17,15 @@ describe('GitHub context client', () => {
     const fetcher = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ error: 'Repository must use owner/name format' }), { status: 400 }))
 
     await expect(loadGitHubContext('invalid', fetcher)).rejects.toThrow('Repository must use owner/name format')
+  })
+
+  it('requests a specific GitHub file without sending credentials', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ repository: 'acme/api-service', path: 'src/index.ts', content: 'export const api = true\n', sha: 'file-sha' }), { status: 200 }))
+
+    await expect(loadGitHubFile('acme/api-service', 'src/index.ts', fetcher)).resolves.toMatchObject({ content: 'export const api = true\n' })
+    expect(fetcher).toHaveBeenCalledWith('/api/github/file', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ repository: 'acme/api-service', path: 'src/index.ts' })
+    }))
   })
 })

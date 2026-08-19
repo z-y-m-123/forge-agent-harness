@@ -2,7 +2,7 @@ import { createServer as createHttpServer, type IncomingMessage, type Server, ty
 import { ProviderRegistry } from './provider-registry.js'
 import { createConfiguredRegistry } from './runtime-config.js'
 import { runAgentLoop } from './agent-loop.js'
-import { GitHubClient, type GitHubContext } from './github-client.js'
+import { GitHubClient, type GitHubContext, type GitHubFile } from './github-client.js'
 import type { RunRequest } from './contracts.js'
 
 const MAX_BODY_BYTES = 1024 * 1024
@@ -44,7 +44,9 @@ function parseRunRequest(body: string): RunRequest {
   }
 }
 
-export function createServer(registry: ProviderRegistry, githubClient: Pick<GitHubClient, 'getContext'> = new GitHubClient()): Server {
+type GitHubReadOnlyClient = Pick<GitHubClient, 'getContext'> & Partial<Pick<GitHubClient, 'getFile'>>
+
+export function createServer(registry: ProviderRegistry, githubClient: GitHubReadOnlyClient = new GitHubClient()): Server {
   return createHttpServer(async (request, response) => {
     if (request.method === 'POST' && request.url === '/api/github/context') {
       try {
@@ -56,6 +58,23 @@ export function createServer(registry: ProviderRegistry, githubClient: Pick<GitH
       } catch (cause) {
         const message = cause instanceof Error ? cause.message : 'GitHub request failed'
         writeError(response, message.includes('required') || message.includes('format') ? 400 : 502, message)
+      }
+      return
+    }
+
+    if (request.method === 'POST' && request.url === '/api/github/file') {
+      try {
+        const body = JSON.parse(await readBody(request)) as { repository?: unknown; path?: unknown }
+        if (typeof body.repository !== 'string' || !body.repository.trim()) throw new Error('repository is required')
+        if (typeof body.path !== 'string' || !body.path.trim()) throw new Error('path is required')
+        if (!githubClient.getFile) throw new Error('GitHub file reading is unavailable')
+        const file: GitHubFile = await githubClient.getFile(body.repository, body.path)
+        response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' })
+        response.end(JSON.stringify(file))
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : ''
+        const isInputError = message.includes('required') || message.includes('format') || message.includes('safe repository-relative path')
+        writeError(response, isInputError ? 400 : 502, isInputError ? message : 'Unable to read GitHub file')
       }
       return
     }
